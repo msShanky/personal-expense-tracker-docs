@@ -1,0 +1,112 @@
+USE expense_tracker;
+
+CREATE TABLE Budget(
+	Id INT NOT NULL AUTO_INCREMENT,
+	TargetAmount DOUBLE(10,2) NOT NULL,
+	BudgetTypeId INT(11) NOT NULL,
+	CreatedAt DATETIME NOT NULL,
+	UpdatedAt DATETIME NOT NULL,
+	PRIMARY KEY (Id),
+	CONSTRAINT `FK_Budget_BudgetType` FOREIGN KEY (budget_type_id) REFERENCES BudgetType (id)
+);
+
+CREATE TABLE BudgetType(
+	Id INT NOT NULL AUTO_INCREMENT,
+	Name VARCHAR(100) DEFAULT NULL,
+	CreatedAt DATETIME NOT NULL,
+	UpdatedAt DATETIME NOT NULL,
+	PRIMARY KEY (Id)
+);
+
+CREATE TABLE Category(
+	Id INT NOT NULL AUTO_INCREMENT,  
+	`Name` VARCHAR(100) NOT NULL,
+	CreatedAt DATETIME NOT NULL,
+	UpdatedAt DATETIME NOT NULL,
+	PRIMARY KEY (Id)
+);
+
+CREATE TABLE Loan(
+	Id INT NOT NULL,
+	StartDate INT(11) NOT NULL,
+	Tenure INT(11) NOT NULL,
+	BankName VARCHAR(100) DEFAULT NULL,
+	Interest FLOAT DEFAULT NULL,
+	Description VARCHAR(150) DEFAULT NULL,
+	CreatedAt DATETIME NOT NULL,
+	UpdatedAt DATETIME NOT NULL,
+	PRIMARY KEY (Id)
+);
+
+CREATE TABLE PaymentMethod(
+	Id INT NOT NULL AUTO_INCREMENT,
+	`Name` VARCHAR(50) NOT NULL,
+	CreatedAt DATETIME NOT NULL,
+	UpdatedAt DATETIME NOT NULL,
+	PRIMARY KEY (Id)
+);
+
+CREATE TABLE `Transaction`(
+	Id INT NOT NULL AUTO_INCREMENT,
+	Amount DECIMAL(10,0) NOT NULL,
+	Description VARCHAR(150) DEFAULT NULL,
+	`Date` DATETIME NOT NULL,
+	PaymentMethodId INT(11) NOT NULL,
+	CategoryId INT(11) NOT NULL,
+	CreatedAt DATETIME NOT NULL,
+	UpdatedAt DATETIME NOT NULL,
+	PRIMARY KEY (Id),
+	CONSTRAINT `FK_Transaction_PaymentMethod` FOREIGN KEY (PaymentMethodId) REFERENCES PaymentMethod (Id),
+	CONSTRAINT `FK_Transaction_Category` FOREIGN KEY (CategoryId) REFERENCES Category (Id)
+);
+
+CREATE TABLE `User`(
+	Id INT NOT NULL AUTO_INCREMENT,
+	Email varchar(150) NOT NULL,
+	`Password` varchar(150) NOT NULL,
+	FirstName varchar(100) DEFAULT NULL,
+	LastName varchar(100) DEFAULT NULL,
+	CreatedAt datetime NOT NULL,
+	UpdatedAt datetime NOT NULL,
+	PRIMARY KEY (Id)
+);
+
+CREATE TABLE SalaryVariables(
+	Id INT NOT NULL AUTO_INCREMENT,
+	`Name` VARCHAR(150) NOT NULL,
+    PRIMARY KEY (Id)
+);
+
+CREATE TABLE Payslips(
+	Id INT NOT NULL AUTO_INCREMENT,
+    SalaryVariablesId INT NOT NULL,
+    `Date` DATETIME NOT NULL,
+    PRIMARY KEY (Id)    
+);
+
+CREATE TABLE RecurringTransaction(
+	Id INT NOT NULL AUTO_INCREMENT,
+    TransactionId INT NOT NULL,
+    RECURRINGTYPE ENUM('weekly','fortnight','monthly', 'yearly'),
+	CONSTRAINT `FK_RecurringTransaction_Transaction` FOREIGN KEY (TransactionId)
+    REFERENCES `Transaction` (Id),
+    PRIMARY KEY (Id)
+);
+
+CREATE TABLE Lending(
+	Id INT NOT NULL AUTO_INCREMENT,
+	LendingAmount FLOAT NOT NULL,
+    `DATE` DATETIME NOT NULL,
+    PRIMARY KEY (Id)
+);
+
+CREATE TABLE LendingTransaction(
+	Id INT NOT NULL AUTO_INCREMENT,
+    LendingId INT NOT NULL,
+    Amount FLOAT NOT NULL,
+    `DATE` DATETIME NOT NULL,
+    isCompleated BOOLEAN DEFAULT FALSE,
+    CONSTRAINT `FK_LendingTransaction_Lending` FOREIGN KEY (LendingId)
+    REFERENCES `Lending` (Id),
+    PRIMARY KEY (Id)
+);
