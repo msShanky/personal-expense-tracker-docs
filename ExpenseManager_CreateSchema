@@ -1,0 +1,190 @@
+/* DROP SCHEMAS */ 
+
+DROP TABLE IF EXISTS Budget;
+DROP TABLE IF EXISTS BudgetType;
+DROP TABLE IF EXISTS Loan;
+DROP TABLE IF EXISTS `Transaction`;
+DROP TABLE IF EXISTS Category;
+DROP TABLE IF EXISTS PaymentMethod;
+DROP TABLE IF EXISTS SalaryVariable;
+DROP TABLE IF EXISTS Payslip;
+DROP TABLE IF EXISTS RecurringTransaction;
+DROP TABLE IF EXISTS Lending;
+DROP TABLE IF EXISTS LendingTransaction;
+DROP TABLE IF EXISTS Savings;
+DROP TABLE IF EXISTS `User`;
+
+
+# User Details Can be extended when supportinng social connect
+CREATE TABLE `USER` (
+    UserId INT NOT NULL AUTO_INCREMENT,
+    Email VARCHAR(100) NOT NULL,
+    UserName VARCHAR(50) NOT NULL,
+    Avatar BLOB DEFAULT '',
+    `Password` VARCHAR(255) NOT NULL,
+    AccessToken VARCHAR(255) DEFAULT '',
+    RefreshToken VARCHAR(255) DEFAULT '',
+    FirstName VARCHAR(150) NOT NULL,
+    LastName VARCHAR(150) NOT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    Active BOOLEAN DEFAULT 1,
+    PRIMARY KEY (UserId)
+);
+
+# For Handling Budget for a single user
+CREATE TABLE Budget (
+    BudgetId INT NOT NULL AUTO_INCREMENT,
+    TargetAmount FLOAT NOT NULL,    
+    StartDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    EndDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_Budget_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId),
+    PRIMARY KEY (BudgetId)
+);
+# Recurring, Lending, Budget, Savings
+CREATE TABLE Loan (
+    LoanId INT NOT NULL AUTO_INCREMENT,
+    StartDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    EndDate DATETIME NOT NULL,
+    Tenure INT NOT NULL,
+    InterestAmount FLOAT NOT NULL,
+    Emi FLOAT NOT NULL,
+    EmiDate DATETIME,
+    BankName VARCHAR(100) NOT NULL,
+    `Name` VARCHAR(150) NOT NULL,
+    Description VARCHAR(255),
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_Loan_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId),
+    PRIMARY KEY (LoanId)
+);
+
+CREATE TABLE Savings (
+    SavingsId INT NOT NULL AUTO_INCREMENT,
+    Amount FLOAT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_Savings_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId),
+    PRIMARY KEY (SavingsId)
+);
+
+CREATE TABLE PaymentMethod (
+    PaymentMethodId INT NOT NULL AUTO_INCREMENT,
+    `Name` VARCHAR(50) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_Savings_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId),
+    PRIMARY KEY (PaymentMethodId)
+);
+
+# Category Transaction
+CREATE TABLE CategoryTransaction (
+    CategoryTransactionId INT NOT NULL AUTO_INCREMENT,
+    `Name` VARCHAR(100) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    PRIMARY KEY (CategoryTransactionId),
+    CONSTRAINT `FK_CategoryTransaction_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId),
+    PRIMARY KEY (CategoryTransactionId)
+);
+
+CREATE TABLE `Transaction` (
+    TransactionId INT NOT NULL AUTO_INCREMENT,
+    Amount FLOAT NOT NULL,
+    Description VARCHAR(150) NOT NULL,
+    `Date` DATETIME NOT NULL,
+    UserId INT NOT NULL,
+    CategoryTransactionId INT NOT NULL,
+    PaymentMethodId INT NOT NULL,
+    RecurringType ENUM('weekly', 'fortnight', 'monthly', 'yearly', 'none') DEFAULT 'none',
+    `Type` ENUM('savings','loan','budget','lending','',''),
+    Credit BOOLEAN NOT NULL DEFAULT false,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_Transaction_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId),
+    CONSTRAINT `FK_Transaction_CategoryTransaction` FOREIGN KEY (CategoryTransactionId)
+        REFERENCES User (CategoryTransactionId),
+    CONSTRAINT `FK_Transaction_PaymentMethod` FOREIGN KEY (PaymentMethodId)
+        REFERENCES User (PaymentMethodId),
+    PRIMARY KEY (CategoryTransactionId)
+);
+
+CREATE TABLE RecurringTransaction (
+    RecurringTransactionId INT NOT NULL AUTO_INCREMENT,
+    TransactionId INT NOT NULL,
+    RecurringType ENUM('weekly', 'fortnight', 'monthly', 'yearly'),
+    UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_RecurringTransaction_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (UserId),
+    CONSTRAINT `FK_RecurringTransaction_Transaction` FOREIGN KEY (TransactionId)
+        REFERENCES `Transaction` (TransactionId),
+    PRIMARY KEY (RecurringTransactionId)
+);
+
+CREATE TABLE SalaryVariable(
+    SalaryVariableId INT NOT NULL AUTO_INCREMENT,
+    `Name` VARCHAR(150) NOT NULL,
+    UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_SalaryVariable_User` FOREIGN KEY (UserId) REFERENCES `User`(UserId),
+    PRIMARY KEY (SalaryVariableId)
+);
+
+CREATE TABLE Payslip (
+    PayslipId INT NOT NULL AUTO_INCREMENT,
+    SalaryVariablesId INT NOT NULL,
+    `Date` DATETIME NOT NULL,
+    UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_Payslip_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (UserId),
+    PRIMARY KEY (PayslipId)
+);
+
+CREATE TABLE Lending (
+    Id INT NOT NULL AUTO_INCREMENT,
+    LendingAmount FLOAT NOT NULL,
+    `DATE` DATETIME NOT NULL,
+    NameOfLendee VARCHAR(150) NOT NULL,
+    ExpectedReturnDate DATETIME NOT NULL,
+    ReturnType ENUM('daily', 'weekly', 'fortnight', 'monthly', 'yearly'),
+    UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_Lending_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (Id),
+    PRIMARY KEY (Id)
+);
+
+CREATE TABLE LendingTransaction (
+    LendingTransactionId INT NOT NULL AUTO_INCREMENT,
+    LendingId INT NOT NULL,
+    Amount FLOAT NOT NULL,
+    `DATE` DATETIME NOT NULL,
+    isCompleated BOOLEAN DEFAULT FALSE,
+    UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_LendingTransaction_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (UserId),
+    CONSTRAINT `FK_LendingTransaction_Lending` FOREIGN KEY (LendingId)
+        REFERENCES `Lending` (LendingId),
+    PRIMARY KEY (LendingTransactionId)
+);
