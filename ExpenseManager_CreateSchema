@@ -1,7 +1,8 @@
-/* DROP SCHEMAS */ 
+DROP DATABASE IF EXISTS expense_tracker;
+CREATE DATABASE expense_tracker;
+USE expense_tracker;
 
 DROP TABLE IF EXISTS Budget;
-DROP TABLE IF EXISTS BudgetType;
 DROP TABLE IF EXISTS Loan;
 DROP TABLE IF EXISTS `Transaction`;
 DROP TABLE IF EXISTS Category;
@@ -14,13 +15,12 @@ DROP TABLE IF EXISTS LendingTransaction;
 DROP TABLE IF EXISTS Savings;
 DROP TABLE IF EXISTS `User`;
 
-
 # User Details Can be extended when supportinng social connect
 CREATE TABLE `USER` (
     UserId INT NOT NULL AUTO_INCREMENT,
     Email VARCHAR(100) NOT NULL,
     UserName VARCHAR(50) NOT NULL,
-    Avatar BLOB DEFAULT '',
+    Avatar TEXT,
     `Password` VARCHAR(255) NOT NULL,
     AccessToken VARCHAR(255) DEFAULT '',
     RefreshToken VARCHAR(255) DEFAULT '',
@@ -82,7 +82,7 @@ CREATE TABLE PaymentMethod (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
-    CONSTRAINT `FK_Savings_User` FOREIGN KEY (UserId)
+    CONSTRAINT `FK_PaymentMethod_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId),
     PRIMARY KEY (PaymentMethodId)
 );
@@ -94,7 +94,6 @@ CREATE TABLE CategoryTransaction (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
-    PRIMARY KEY (CategoryTransactionId),
     CONSTRAINT `FK_CategoryTransaction_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId),
     PRIMARY KEY (CategoryTransactionId)
@@ -109,42 +108,27 @@ CREATE TABLE `Transaction` (
     CategoryTransactionId INT NOT NULL,
     PaymentMethodId INT NOT NULL,
     RecurringType ENUM('weekly', 'fortnight', 'monthly', 'yearly', 'none') DEFAULT 'none',
-    `Type` ENUM('savings','loan','budget','lending','',''),
-    Credit BOOLEAN NOT NULL DEFAULT false,
-    LastRecurringDate DATETIME,
-    NextRecurringDate DATETIME,
+    `Type` ENUM('savings', 'loan', 'budget', 'lending', '') DEFAULT '',
+    Credit BOOLEAN NOT NULL DEFAULT FALSE,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Transaction_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId),
     CONSTRAINT `FK_Transaction_CategoryTransaction` FOREIGN KEY (CategoryTransactionId)
-        REFERENCES User (CategoryTransactionId),
+        REFERENCES CategoryTransaction (CategoryTransactionId),
     CONSTRAINT `FK_Transaction_PaymentMethod` FOREIGN KEY (PaymentMethodId)
-        REFERENCES User (PaymentMethodId),
-    PRIMARY KEY (CategoryTransactionId)
+        REFERENCES PaymentMethod (PaymentMethodId),
+    PRIMARY KEY (TransactionId)
 );
 
-CREATE TABLE RecurringTransaction (
-    RecurringTransactionId INT NOT NULL AUTO_INCREMENT,
-    TransactionId INT NOT NULL,
-    RecurringType ENUM('weekly', 'fortnight', 'monthly', 'yearly'),
-    UserId INT NOT NULL,
-    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT `FK_RecurringTransaction_User` FOREIGN KEY (UserId)
-        REFERENCES `User` (UserId),
-    CONSTRAINT `FK_RecurringTransaction_Transaction` FOREIGN KEY (TransactionId)
-        REFERENCES `Transaction` (TransactionId),
-    PRIMARY KEY (RecurringTransactionId)
-);
-
-CREATE TABLE SalaryVariable(
+CREATE TABLE SalaryVariable (
     SalaryVariableId INT NOT NULL AUTO_INCREMENT,
     `Name` VARCHAR(150) NOT NULL,
     UserId INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT `FK_SalaryVariable_User` FOREIGN KEY (UserId) REFERENCES `User`(UserId),
+    CONSTRAINT `FK_SalaryVariable_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (UserId),
     PRIMARY KEY (SalaryVariableId)
 );
 
@@ -167,11 +151,12 @@ CREATE TABLE Lending (
     NameOfLendee VARCHAR(150) NOT NULL,
     ExpectedReturnDate DATETIME NOT NULL,
     ReturnType ENUM('daily', 'weekly', 'fortnight', 'monthly', 'yearly'),
-    isCompleated BOOLEAN DEFAULT false,
+    PredictedReturnDate DATETIME,
+    isCompleated BOOLEAN DEFAULT FALSE,
     UserId INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Lending_User` FOREIGN KEY (UserId)
-        REFERENCES `User` (Id),
+        REFERENCES `User` (UserId),
     PRIMARY KEY (Id)
 );
