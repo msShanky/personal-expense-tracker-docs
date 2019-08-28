@@ -111,6 +111,8 @@ CREATE TABLE `Transaction` (
     RecurringType ENUM('weekly', 'fortnight', 'monthly', 'yearly', 'none') DEFAULT 'none',
     `Type` ENUM('savings','loan','budget','lending','',''),
     Credit BOOLEAN NOT NULL DEFAULT false,
+    LastRecurringDate DATETIME,
+    NextRecurringDate DATETIME,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Transaction_User` FOREIGN KEY (UserId)
