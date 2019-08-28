@@ -28,7 +28,7 @@ CREATE TABLE `USER` (
     LastName VARCHAR(150) NOT NULL,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    Active BOOLEAN DEFAULT 1,
+    `Active` BOOLEAN DEFAULT TRUE,
     PRIMARY KEY (UserId)
 );
 
@@ -45,18 +45,18 @@ CREATE TABLE Budget (
         REFERENCES User (UserId),
     PRIMARY KEY (BudgetId)
 );
-# Recurring, Lending, Budget, Savings
+
 CREATE TABLE Loan (
     LoanId INT NOT NULL AUTO_INCREMENT,
-    StartDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    EndDate DATETIME NOT NULL,
+    `Name` VARCHAR(150) NOT NULL,
+    `Description` VARCHAR(255),    
     Tenure INT NOT NULL,
     InterestAmount FLOAT NOT NULL,
     Emi FLOAT NOT NULL,
     EmiDate DATETIME,
-    BankName VARCHAR(100) NOT NULL,
-    `Name` VARCHAR(150) NOT NULL,
-    Description VARCHAR(255),
+    BankName VARCHAR(100) NOT NULL,    
+    StartDate DATETIME NOT NULL,
+    EndDate DATETIME NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE CategoryTransaction (
 CREATE TABLE `Transaction` (
     TransactionId INT NOT NULL AUTO_INCREMENT,
     Amount FLOAT NOT NULL,
-    Description VARCHAR(150) NOT NULL,
+    `Description` VARCHAR(150) NOT NULL,
     `Date` DATETIME NOT NULL,
     UserId INT NOT NULL,
     CategoryTransactionId INT NOT NULL,
@@ -161,30 +161,15 @@ CREATE TABLE Payslip (
 CREATE TABLE Lending (
     Id INT NOT NULL AUTO_INCREMENT,
     LendingAmount FLOAT NOT NULL,
-    `DATE` DATETIME NOT NULL,
+    `Date` DATETIME NOT NULL,
     NameOfLendee VARCHAR(150) NOT NULL,
     ExpectedReturnDate DATETIME NOT NULL,
     ReturnType ENUM('daily', 'weekly', 'fortnight', 'monthly', 'yearly'),
+    isCompleated BOOLEAN DEFAULT false,
     UserId INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Lending_User` FOREIGN KEY (UserId)
         REFERENCES `User` (Id),
     PRIMARY KEY (Id)
-);
-
-CREATE TABLE LendingTransaction (
-    LendingTransactionId INT NOT NULL AUTO_INCREMENT,
-    LendingId INT NOT NULL,
-    Amount FLOAT NOT NULL,
-    `DATE` DATETIME NOT NULL,
-    isCompleated BOOLEAN DEFAULT FALSE,
-    UserId INT NOT NULL,
-    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT `FK_LendingTransaction_User` FOREIGN KEY (UserId)
-        REFERENCES `User` (UserId),
-    CONSTRAINT `FK_LendingTransaction_Lending` FOREIGN KEY (LendingId)
-        REFERENCES `Lending` (LendingId),
-    PRIMARY KEY (LendingTransactionId)
 );
