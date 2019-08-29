@@ -150,6 +150,11 @@ CREATE TABLE PayslipVariableMapping (
     PayslipId INT NOT NULL,
     PayslipVariableId INT NOT NULL,
     Amount FLOAT NOT NULL,
+    UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_PayslipVariableMapping_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (UserId),
     CONSTRAINT `UK_Unique_PayslipId_PayslipVariableId` UNIQUE (PayslipId , PayslipVariableId),
     PRIMARY KEY (PayslipVariableMappingId)
 );
