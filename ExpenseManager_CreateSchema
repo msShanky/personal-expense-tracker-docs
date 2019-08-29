@@ -5,13 +5,11 @@ USE expense_tracker;
 DROP TABLE IF EXISTS Budget;
 DROP TABLE IF EXISTS Loan;
 DROP TABLE IF EXISTS `Transaction`;
-DROP TABLE IF EXISTS Category;
+DROP TABLE IF EXISTS CategoryTransaction;
 DROP TABLE IF EXISTS PaymentMethod;
 DROP TABLE IF EXISTS SalaryVariable;
 DROP TABLE IF EXISTS Payslip;
-DROP TABLE IF EXISTS RecurringTransaction;
 DROP TABLE IF EXISTS Lending;
-DROP TABLE IF EXISTS LendingTransaction;
 DROP TABLE IF EXISTS Savings;
 DROP TABLE IF EXISTS `User`;
 
@@ -121,27 +119,39 @@ CREATE TABLE `Transaction` (
     PRIMARY KEY (TransactionId)
 );
 
-CREATE TABLE SalaryVariable (
-    SalaryVariableId INT NOT NULL AUTO_INCREMENT,
+CREATE TABLE PayslipVariable (
+    PayslipVariableId INT NOT NULL AUTO_INCREMENT,
     `Name` VARCHAR(150) NOT NULL,
     UserId INT NOT NULL,
+    IsDeduction BOOLEAN DEFAULT FALSE,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_SalaryVariable_User` FOREIGN KEY (UserId)
         REFERENCES `User` (UserId),
-    PRIMARY KEY (SalaryVariableId)
+    PRIMARY KEY (PayslipVariableId)
 );
 
 CREATE TABLE Payslip (
     PayslipId INT NOT NULL AUTO_INCREMENT,
-    SalaryVariablesId INT NOT NULL,
+    PayslipVariableId INT NOT NULL,
     `Date` DATETIME NOT NULL,
     UserId INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Payslip_User` FOREIGN KEY (UserId)
         REFERENCES `User` (UserId),
+    CONSTRAINT `FK_Payslip_PayslipVariable` FOREIGN KEY (PayslipVariableId)
+        REFERENCES PayslipVariable (PayslipVariableId),
     PRIMARY KEY (PayslipId)
+);
+
+CREATE TABLE PayslipVariableMapping (
+    PayslipVariableMappingId INT NOT NULL AUTO_INCREMENT,
+    PayslipId INT NOT NULL,
+    PayslipVariableId INT NOT NULL,
+    Amount FLOAT NOT NULL,
+    CONSTRAINT `UK_Unique_PayslipId_PayslipVariableId` UNIQUE (PayslipId , PayslipVariableId),
+    PRIMARY KEY (PayslipVariableMappingId)
 );
 
 CREATE TABLE Lending (
@@ -152,7 +162,7 @@ CREATE TABLE Lending (
     ExpectedReturnDate DATETIME NOT NULL,
     ReturnType ENUM('daily', 'weekly', 'fortnight', 'monthly', 'yearly'),
     PredictedReturnDate DATETIME,
-    isCompleated BOOLEAN DEFAULT FALSE,
+    IsCompleted BOOLEAN DEFAULT FALSE,
     UserId INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
