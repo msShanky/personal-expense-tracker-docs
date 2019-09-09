@@ -176,7 +176,7 @@ CREATE TABLE CategoryTransaction (
     CategoryTransactionId INT NOT NULL AUTO_INCREMENT,
     `Name` VARCHAR(100) NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
     CONSTRAINT `FK_CategoryTransaction_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -204,7 +204,7 @@ CREATE TABLE `Transaction` (
     PaymentMethodId INT NOT NULL,
     RecurringTypeId INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Transaction_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId)
         ON DELETE CASCADE ON UPDATE CASCADE,
@@ -232,23 +232,28 @@ CREATE TABLE Ledger (
     LendingId INT NULL,
     PayslipId INT NULL,
     SavingsId INT NULL,
-    CONSTRAINT `FK_Transaction_Budget` FOREIGN KEY (BudgetId)
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_Ledger_Budget` FOREIGN KEY (BudgetId)
         REFERENCES Budget (BudgetId)
         ON UPDATE CASCADE,
-    CONSTRAINT `FK_Transaction_Loan` FOREIGN KEY (LoanId)
+    CONSTRAINT `FK_Ledger_Loan` FOREIGN KEY (LoanId)
         REFERENCES Loan (LoanId)
         ON UPDATE CASCADE,
-    CONSTRAINT `FK_Transaction_Lending` FOREIGN KEY (LendingId)
+    CONSTRAINT `FK_Ledger_Lending` FOREIGN KEY (LendingId)
         REFERENCES Lending (LendingId)
         ON UPDATE CASCADE,
-    CONSTRAINT `FK_Transaction_Payslip` FOREIGN KEY (PayslipId)
+    CONSTRAINT `FK_Ledger_Payslip` FOREIGN KEY (PayslipId)
         REFERENCES Payslip (PayslipId)
         ON UPDATE CASCADE,
-    CONSTRAINT `FK_Transaction_Savings` FOREIGN KEY (SavingsId)
+    CONSTRAINT `FK_Ledger_Savings` FOREIGN KEY (SavingsId)
         REFERENCES Savings (SavingsId)
         ON UPDATE CASCADE,
     CONSTRAINT `FK_Ledger_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId)
         ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `FK_Ledger_TransactionType` FOREIGN KEY (TransactionTypeId)
+        REFERENCES TransactionType (TransactionTypeId)
+        ON UPDATE CASCADE,
     PRIMARY KEY (LedgerId)
 );
