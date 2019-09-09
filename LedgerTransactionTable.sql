@@ -1,22 +1,22 @@
-DROP DATABASE IF EXISTS expense_tracker_transaction_ledger;
-CREATE DATABASE expense_tracker_transaction_ledger;
+-- DROP DATABASE IF EXISTS expense_tracker_transaction_ledger;
+-- CREATE DATABASE expense_tracker_transaction_ledger;
 USE expense_tracker_transaction_ledger;
 
 
 DROP TABLE IF EXISTS `Transaction`;
 DROP TABLE IF EXISTS CategoryTransaction;
 DROP TABLE IF EXISTS PaymentMethod;
-DROP TABLE IF EXISTS Payslip;
+DROP TABLE IF EXISTS Ledger;
 DROP TABLE IF EXISTS PayslipVariableMapping;
+DROP TABLE IF EXISTS Payslip;
 DROP TABLE IF EXISTS PayslipVariable;
 DROP TABLE IF EXISTS Lending;
+DROP TABLE IF EXISTS RecurringType;
 DROP TABLE IF EXISTS LendingReturnType;
 DROP TABLE IF EXISTS Savings;
-DROP TABLE IF EXISTS RecurringType;
 DROP TABLE IF EXISTS TransactionType;
 DROP TABLE IF EXISTS Budget;
 DROP TABLE IF EXISTS Loan;
-DROP TABLE IF EXISTS Ledger;
 DROP TABLE IF EXISTS `User`;
 
 
@@ -83,13 +83,23 @@ CREATE TABLE Savings (
     PRIMARY KEY (SavingsId)
 );
 
-CREATE TABLE LendingReturnType (
-    LendingReturnTypeId INT NOT NULL AUTO_INCREMENT,
+CREATE TABLE RecurringType (
+    RecurringTypeId INT NOT NULL AUTO_INCREMENT,
     Name VARCHAR(150) NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (LendingReturnTypeId)
+    PRIMARY KEY (RecurringTypeId)
 );
+
+-- CREATE DEFAULT VALUES WHEN CREATING THE DATABASE FOR => RecurringType
+
+-- CREATE TABLE LendingReturnType (
+--     LendingReturnTypeId INT NOT NULL AUTO_INCREMENT,
+--     Name VARCHAR(150) NOT NULL,
+--     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     PRIMARY KEY (LendingReturnTypeId)
+-- );
 
 
 CREATE TABLE Lending (
@@ -98,7 +108,7 @@ CREATE TABLE Lending (
     `Date` DATETIME NOT NULL,
     NameOfLendee VARCHAR(150) NOT NULL,
     ExpectedReturnDate DATETIME NOT NULL,
-    LendingReturnTypeId INT NOT NULL,
+    ReturnTypeId INT NOT NULL,
     PredictedReturnDate DATETIME,
     IsCompleted BOOLEAN DEFAULT FALSE,
     UserId INT NOT NULL,
@@ -107,8 +117,8 @@ CREATE TABLE Lending (
     CONSTRAINT `FK_Lending_User` FOREIGN KEY (UserId)
         REFERENCES `User` (UserId)
         ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `FK_Lending_LendingReturnType` FOREIGN KEY (LendingReturnTypeId)
-        REFERENCES LendingReturnType (LendingReturnTypeId)
+    CONSTRAINT `FK_Lending_RecurringType` FOREIGN KEY (ReturnTypeId)
+        REFERENCES RecurringType (RecurringTypeId)
         ON UPDATE CASCADE,
     PRIMARY KEY (LendingId)
 );
@@ -127,15 +137,12 @@ CREATE TABLE PayslipVariable (
 
 CREATE TABLE Payslip (
     PayslipId INT NOT NULL AUTO_INCREMENT,
-    PayslipVariableId INT NOT NULL,
     `Date` DATETIME NOT NULL,
     UserId INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Payslip_User` FOREIGN KEY (UserId)
         REFERENCES `User` (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `FK_Payslip_PayslipVariable` FOREIGN KEY (PayslipVariableId)
-        REFERENCES PayslipVariable (PayslipVariableId) ON UPDATE CASCADE,
     PRIMARY KEY (PayslipId)
 );
 
@@ -185,15 +192,7 @@ CREATE TABLE TransactionType (
 );
 -- CREATE DEFAULT VALUES WHEN CREATING THE DATABASE FOR => TransactionType
 
-CREATE TABLE RecurringType (
-    RecurringTypeId INT NOT NULL AUTO_INCREMENT,
-    Name VARCHAR(150) NOT NULL,
-    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (RecurringTypeId)
-);
 
--- CREATE DEFAULT VALUES WHEN CREATING THE DATABASE FOR => RecurringType
 
 CREATE TABLE `Transaction` (
     TransactionId INT NOT NULL AUTO_INCREMENT,

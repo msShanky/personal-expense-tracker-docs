@@ -3,4 +3,4 @@ USE expense_tracker_transaction_ledger;
 
 INSERT INTO TransactionType (Name) VALUES('Savings'),('Loan'),('Lending'),('Salary'),('Budget'),('Debit'),('Credit') ;
 
-INSERT INTO RecurringType (Name) VALUES('Weekly'),('Fortnight'),('Monthly'),('Yearly'),('None');
+INSERT INTO RecurringType (Name) VALUES('Daily'),('Weekly'),('Fortnight'),('Monthly'),('Yearly'),('None');
