@@ -1,0 +1,255 @@
+DROP DATABASE IF EXISTS expense_tracker_transaction_with_ledger;
+CREATE DATABASE expense_tracker_transaction_ledger;
+USE expense_tracker_transaction_test_01;
+
+
+DROP TABLE IF EXISTS `Transaction`;
+DROP TABLE IF EXISTS CategoryTransaction;
+DROP TABLE IF EXISTS PaymentMethod;
+DROP TABLE IF EXISTS Payslip;
+DROP TABLE IF EXISTS PayslipVariableMapping;
+DROP TABLE IF EXISTS PayslipVariable;
+DROP TABLE IF EXISTS Lending;
+DROP TABLE IF EXISTS LendingReturnType;
+DROP TABLE IF EXISTS Savings;
+DROP TABLE IF EXISTS RecurringType;
+DROP TABLE IF EXISTS TransactionType;
+DROP TABLE IF EXISTS Budget;
+DROP TABLE IF EXISTS Loan;
+DROP TABLE IF EXISTS `User`;
+
+
+# User Details Can be extended when supportinng social connect
+CREATE TABLE `User` (
+    UserId INT NOT NULL AUTO_INCREMENT,
+    Email VARCHAR(100) NOT NULL,
+    UserName VARCHAR(50) NOT NULL,
+    Avatar TEXT,
+    `Password` VARCHAR(255) NOT NULL,
+    AccessToken VARCHAR(255) DEFAULT '',
+    RefreshToken VARCHAR(255) DEFAULT '',
+    FirstName VARCHAR(150) NOT NULL,
+    LastName VARCHAR(150) NOT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `Active` BOOLEAN DEFAULT TRUE,
+    PRIMARY KEY (UserId)
+);
+
+# For Handling Budget for a single user
+CREATE TABLE Budget (
+    BudgetId INT NOT NULL AUTO_INCREMENT,
+    TargetAmount FLOAT NOT NULL,    
+    Description VARCHAR(255) NULL DEFAULT '',
+    StartDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    EndDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_Budget_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (BudgetId)
+);
+
+CREATE TABLE Loan (
+    LoanId INT NOT NULL AUTO_INCREMENT,
+    `Name` VARCHAR(150) NOT NULL,
+    Description VARCHAR(255),    
+    Tenure INT NOT NULL,
+    InterestAmount FLOAT NOT NULL,
+    Emi FLOAT NOT NULL,
+    EmiDate DATETIME,
+    BankName VARCHAR(100) NOT NULL,    
+    StartDate DATETIME NOT NULL,
+    EndDate DATETIME NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_Loan_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (LoanId)
+);
+
+CREATE TABLE Savings (
+    SavingsId INT NOT NULL AUTO_INCREMENT,
+    Amount FLOAT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_Savings_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (SavingsId)
+);
+
+CREATE TABLE LendingReturnType (
+    LendingReturnTypeId INT NOT NULL AUTO_INCREMENT,
+    Name VARCHAR(150) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (LendingReturnTypeId)
+);
+
+
+CREATE TABLE Lending (
+    LendingId INT NOT NULL AUTO_INCREMENT,
+    LendingAmount FLOAT NOT NULL,
+    `Date` DATETIME NOT NULL,
+    NameOfLendee VARCHAR(150) NOT NULL,
+    ExpectedReturnDate DATETIME NOT NULL,
+    LendingReturnTypeId INT NOT NULL,
+    PredictedReturnDate DATETIME,
+    IsCompleted BOOLEAN DEFAULT FALSE,
+    UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_Lending_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (UserId)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `FK_Lending_LendingReturnType` FOREIGN KEY (LendingReturnTypeId)
+        REFERENCES LendingReturnType (LendingReturnTypeId)
+        ON UPDATE CASCADE,
+    PRIMARY KEY (LendingId)
+);
+
+CREATE TABLE PayslipVariable (
+    PayslipVariableId INT NOT NULL AUTO_INCREMENT,
+    `Name` VARCHAR(150) NOT NULL,
+    UserId INT NOT NULL,
+    IsDeduction BOOLEAN DEFAULT FALSE,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_SalaryVariable_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (PayslipVariableId)
+);
+
+CREATE TABLE Payslip (
+    PayslipId INT NOT NULL AUTO_INCREMENT,
+    PayslipVariableId INT NOT NULL,
+    `Date` DATETIME NOT NULL,
+    UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_Payslip_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `FK_Payslip_PayslipVariable` FOREIGN KEY (PayslipVariableId)
+        REFERENCES PayslipVariable (PayslipVariableId) ON UPDATE CASCADE,
+    PRIMARY KEY (PayslipId)
+);
+
+CREATE TABLE PayslipVariableMapping (
+    PayslipVariableMappingId INT NOT NULL AUTO_INCREMENT,
+    PayslipId INT NOT NULL,
+    PayslipVariableId INT NOT NULL,
+    Amount FLOAT NOT NULL,
+    UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_PayslipVariableMapping_User` FOREIGN KEY (UserId)
+        REFERENCES `User` (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `UK_Unique_PayslipId_PayslipVariableId` UNIQUE (PayslipId , PayslipVariableId),
+    PRIMARY KEY (PayslipVariableMappingId)
+);
+
+CREATE TABLE PaymentMethod (
+    PaymentMethodId INT NOT NULL AUTO_INCREMENT,
+    `Name` VARCHAR(50) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_PaymentMethod_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId)  ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (PaymentMethodId)
+);
+
+# Category Transaction
+CREATE TABLE CategoryTransaction (
+    CategoryTransactionId INT NOT NULL AUTO_INCREMENT,
+    `Name` VARCHAR(100) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_CategoryTransaction_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (CategoryTransactionId)
+);
+
+CREATE TABLE TransactionType (
+    TransactionTypeId INT NOT NULL AUTO_INCREMENT,
+    Name VARCHAR(150) NOT NULL,
+    IsCredit BOOLEAN DEFAULT FALSE,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (TransactionTypeId)
+);
+-- CREATE DEFAULT VALUES WHEN CREATING THE DATABASE FOR => TransactionType
+
+CREATE TABLE RecurringType (
+    RecurringTypeId INT NOT NULL AUTO_INCREMENT,
+    Name VARCHAR(150) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (RecurringTypeId)
+);
+
+-- CREATE DEFAULT VALUES WHEN CREATING THE DATABASE FOR => RecurringType
+
+CREATE TABLE `Transaction` (
+    TransactionId INT NOT NULL AUTO_INCREMENT,
+    Amount FLOAT NOT NULL,
+    `Description` VARCHAR(150) NOT NULL,
+    `Date` DATETIME NOT NULL,
+    UserId INT NOT NULL,
+    CategoryTransactionId INT NULL,
+    PaymentMethodId INT NOT NULL,
+    RecurringTypeId INT NOT NULL,
+    TransactionTypeId INT NOT NULL,
+    Credit BOOLEAN NOT NULL DEFAULT FALSE,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `FK_Transaction_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `FK_Transaction_CategoryTransaction` FOREIGN KEY (CategoryTransactionId)
+        REFERENCES CategoryTransaction (CategoryTransactionId)
+        ON UPDATE CASCADE,
+    CONSTRAINT `FK_Transaction_RecurringType` FOREIGN KEY (RecurringTypeId)
+        REFERENCES RecurringType (RecurringTypeId)
+        ON UPDATE CASCADE,
+    CONSTRAINT `FK_Transaction_PaymentMethod` FOREIGN KEY (PaymentMethodId)
+        REFERENCES PaymentMethod (PaymentMethodId)
+        ON UPDATE CASCADE,
+
+    PRIMARY KEY (TransactionId)
+);
+
+CREATE TABLE Ledger (
+    LedgerId INT NOT NULL AUTO_INCREMENT,
+    TransactionTypeId INT NOT NULL,
+    TransactionId INT NOT NULL,
+    UserId INT NOT NULL,
+    BudgetId INT NULL,
+    LoanId INT NULL,
+    LendingId INT NULL,
+    PayslipId INT NULL,
+    SavingsId INT NULL,
+    CONSTRAINT `FK_Transaction_Budget` FOREIGN KEY (BudgetId)
+        REFERENCES Budget (BudgetId)
+        ON UPDATE CASCADE,
+    CONSTRAINT `FK_Transaction_Loan` FOREIGN KEY (LoanId)
+        REFERENCES Loan (LoanId)
+        ON UPDATE CASCADE,
+    CONSTRAINT `FK_Transaction_Lending` FOREIGN KEY (LendingId)
+        REFERENCES Lending (LendingId)
+        ON UPDATE CASCADE,
+    CONSTRAINT `FK_Transaction_Payslip` FOREIGN KEY (PayslipId)
+        REFERENCES Payslip (PayslipId)
+        ON UPDATE CASCADE,
+    CONSTRAINT `FK_Transaction_Savings` FOREIGN KEY (SavingsId)
+        REFERENCES Savings (SavingsId)
+        ON UPDATE CASCADE,
+    CONSTRAINT `FK_Ledger_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (LedgerId)
+);
