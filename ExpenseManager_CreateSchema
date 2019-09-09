@@ -31,6 +31,7 @@ CREATE TABLE `USER` (
 );
 
 # For Handling Budget for a single user
+-- ADD description for a budget
 CREATE TABLE Budget (
     BudgetId INT NOT NULL AUTO_INCREMENT,
     TargetAmount FLOAT NOT NULL,    
@@ -40,7 +41,7 @@ CREATE TABLE Budget (
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
     CONSTRAINT `FK_Budget_User` FOREIGN KEY (UserId)
-        REFERENCES User (UserId),
+        REFERENCES User (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY (BudgetId)
 );
 
@@ -59,7 +60,7 @@ CREATE TABLE Loan (
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
     CONSTRAINT `FK_Loan_User` FOREIGN KEY (UserId)
-        REFERENCES User (UserId),
+        REFERENCES User (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY (LoanId)
 );
 
@@ -70,7 +71,7 @@ CREATE TABLE Savings (
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
     CONSTRAINT `FK_Savings_User` FOREIGN KEY (UserId)
-        REFERENCES User (UserId),
+        REFERENCES User (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY (SavingsId)
 );
 
@@ -81,7 +82,7 @@ CREATE TABLE PaymentMethod (
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
     CONSTRAINT `FK_PaymentMethod_User` FOREIGN KEY (UserId)
-        REFERENCES User (UserId),
+        REFERENCES User (UserId)  ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY (PaymentMethodId)
 );
 
@@ -93,7 +94,7 @@ CREATE TABLE CategoryTransaction (
     UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
     CONSTRAINT `FK_CategoryTransaction_User` FOREIGN KEY (UserId)
-        REFERENCES User (UserId),
+        REFERENCES User (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY (CategoryTransactionId)
 );
 
@@ -107,15 +108,19 @@ CREATE TABLE `Transaction` (
     PaymentMethodId INT NOT NULL,
     RecurringType ENUM('weekly', 'fortnight', 'monthly', 'yearly', 'none') DEFAULT 'none',
     `Type` ENUM('savings', 'loan', 'budget', 'lending', '') DEFAULT '',
+    TypeId INT NOT NULL DEFAULT 0,
     Credit BOOLEAN NOT NULL DEFAULT FALSE,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Transaction_User` FOREIGN KEY (UserId)
-        REFERENCES User (UserId),
+        REFERENCES User (UserId)
+        ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT `FK_Transaction_CategoryTransaction` FOREIGN KEY (CategoryTransactionId)
-        REFERENCES CategoryTransaction (CategoryTransactionId),
+        REFERENCES CategoryTransaction (CategoryTransactionId)
+        ON UPDATE CASCADE,
     CONSTRAINT `FK_Transaction_PaymentMethod` FOREIGN KEY (PaymentMethodId)
-        REFERENCES PaymentMethod (PaymentMethodId),
+        REFERENCES PaymentMethod (PaymentMethodId)
+        ON UPDATE CASCADE,
     PRIMARY KEY (TransactionId)
 );
 
@@ -127,7 +132,7 @@ CREATE TABLE PayslipVariable (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_SalaryVariable_User` FOREIGN KEY (UserId)
-        REFERENCES `User` (UserId),
+        REFERENCES `User` (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY (PayslipVariableId)
 );
 
@@ -139,9 +144,9 @@ CREATE TABLE Payslip (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Payslip_User` FOREIGN KEY (UserId)
-        REFERENCES `User` (UserId),
+        REFERENCES `User` (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT `FK_Payslip_PayslipVariable` FOREIGN KEY (PayslipVariableId)
-        REFERENCES PayslipVariable (PayslipVariableId),
+        REFERENCES PayslipVariable (PayslipVariableId) ON UPDATE CASCADE,
     PRIMARY KEY (PayslipId)
 );
 
@@ -154,7 +159,7 @@ CREATE TABLE PayslipVariableMapping (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_PayslipVariableMapping_User` FOREIGN KEY (UserId)
-        REFERENCES `User` (UserId),
+        REFERENCES `User` (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT `UK_Unique_PayslipId_PayslipVariableId` UNIQUE (PayslipId , PayslipVariableId),
     PRIMARY KEY (PayslipVariableMappingId)
 );
@@ -167,11 +172,11 @@ CREATE TABLE Lending (
     ExpectedReturnDate DATETIME NOT NULL,
     ReturnType ENUM('daily', 'weekly', 'fortnight', 'monthly', 'yearly'),
     PredictedReturnDate DATETIME,
-    IsCompleted BOOLEAN DEFAULT FALSE,
+    IsCompleted BOOLEAN DEFAULT FALSE,  
     UserId INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Lending_User` FOREIGN KEY (UserId)
-        REFERENCES `User` (UserId),
+        REFERENCES `User` (UserId) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY (Id)
 );
