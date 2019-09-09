@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS expense_tracker_transaction_with_ledger;
+DROP DATABASE IF EXISTS expense_tracker_transaction_ledger;
 CREATE DATABASE expense_tracker_transaction_ledger;
-USE expense_tracker_transaction_test_01;
+USE expense_tracker_transaction_ledger;
 
 
 DROP TABLE IF EXISTS `Transaction`;
@@ -16,7 +16,9 @@ DROP TABLE IF EXISTS RecurringType;
 DROP TABLE IF EXISTS TransactionType;
 DROP TABLE IF EXISTS Budget;
 DROP TABLE IF EXISTS Loan;
+DROP TABLE IF EXISTS Ledger;
 DROP TABLE IF EXISTS `User`;
+
 
 
 # User Details Can be extended when supportinng social connect
@@ -177,7 +179,6 @@ CREATE TABLE CategoryTransaction (
 CREATE TABLE TransactionType (
     TransactionTypeId INT NOT NULL AUTO_INCREMENT,
     Name VARCHAR(150) NOT NULL,
-    IsCredit BOOLEAN DEFAULT FALSE,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (TransactionTypeId)
@@ -203,8 +204,6 @@ CREATE TABLE `Transaction` (
     CategoryTransactionId INT NULL,
     PaymentMethodId INT NOT NULL,
     RecurringTypeId INT NOT NULL,
-    TransactionTypeId INT NOT NULL,
-    Credit BOOLEAN NOT NULL DEFAULT FALSE,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Transaction_User` FOREIGN KEY (UserId)
@@ -227,6 +226,7 @@ CREATE TABLE Ledger (
     LedgerId INT NOT NULL AUTO_INCREMENT,
     TransactionTypeId INT NOT NULL,
     TransactionId INT NOT NULL,
+    Credit BOOLEAN NOT NULL DEFAULT FALSE,
     UserId INT NOT NULL,
     BudgetId INT NULL,
     LoanId INT NULL,
