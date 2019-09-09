@@ -86,7 +86,7 @@ CREATE TABLE PaymentMethod (
     PRIMARY KEY (PaymentMethodId)
 );
 
-# Category Transaction
+# Category Transaction for the type of the transaction 
 CREATE TABLE CategoryTransaction (
     CategoryTransactionId INT NOT NULL AUTO_INCREMENT,
     `Name` VARCHAR(100) NOT NULL,
