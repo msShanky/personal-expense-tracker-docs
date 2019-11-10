@@ -1,5 +1,5 @@
--- DROP DATABASE IF EXISTS expense_tracker_transaction_ledger;
--- CREATE DATABASE expense_tracker_transaction_ledger;
+-- DROP DATABASE IF EXISTS expense_tracker_accounts;
+-- CREATE DATABASE expense_tracker_accounts;
 USE expense_tracker_accounts;
 
 -- DROP TABLE IF EXISTS Ledger;
@@ -10,12 +10,14 @@ DROP TABLE IF EXISTS PayslipVariableMapping;
 DROP TABLE IF EXISTS Payslip;
 DROP TABLE IF EXISTS PayslipVariable;
 DROP TABLE IF EXISTS Lending;
-DROP TABLE IF EXISTS RecurringType;
 DROP TABLE IF EXISTS LendingReturnType;
 DROP TABLE IF EXISTS Savings;
 DROP TABLE IF EXISTS TransactionType;
 DROP TABLE IF EXISTS Budget;
+DROP TABLE IF EXISTS RecurringType;
 DROP TABLE IF EXISTS Loan;
+DROP TABLE IF EXISTS Goal;
+DROP TABLE IF EXISTS `Account`;
 DROP TABLE IF EXISTS `User`;
 
 
@@ -50,9 +52,12 @@ CREATE TABLE `Account` (
     Name VARCHAR(100) NOT NULL,
     Type VARCHAR(100),
     UserId INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `FK_Account_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId)
-        ON DELETE CASCADE ON UPDATE CASCADE
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (AccountId)
 );
 
 # Budget is for declaring a limit for the amount of transaction allowed for the specific time period
@@ -61,7 +66,8 @@ CREATE TABLE Budget (
     AllocatedAmount FLOAT NOT NULL,
     Description VARCHAR(255) NULL DEFAULT '',
     TimePeriodId INT NOT NULL,
-    AccountId INT NOT NULL,
+    AccountId  INT NOT NULL,
+    Active BOOLEAN DEFAULT TRUE,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
@@ -69,10 +75,33 @@ CREATE TABLE Budget (
         REFERENCES User (UserId)
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT `FK_Budget_RecurringType` FOREIGN KEY (TimePeriodId)
-        REFERENCES User (RecurringTypeId),
+        REFERENCES RecurringType (RecurringTypeId),
     CONSTRAINT `FK_Budget_Account` FOREIGN KEY (AccountId)
         REFERENCES `Account` (AccountId),
     PRIMARY KEY (BudgetId)
+);
+
+-- TODO : add a new table for maintaining financial goal 
+
+CREATE TABLE Goal (
+    GoalId INT NOT NULL AUTO_INCREMENT,
+    StartDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    EndDate DATETIME NOT NULL,
+    Description VARCHAR(200) NOT NULL,
+    TargetAmount DOUBLE NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UserId INT NOT NULL,
+    CONSTRAINT `FK_Goal_User` FOREIGN KEY (UserId)
+        REFERENCES User (UserId)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (GoalId)
+);
+
+CREATE TABLE LoanType (
+    LoanTypeId INT NOT NULL AUTO_INCREMENT,
+    Name VARCHAR(150) NOT NULL,
+    PRIMARY KEY (LoanTypeId)
 );
 
 # Loan is for tracking all the loan related details including the emi amount and the remaining amount with a countdown time to the end of the loan
@@ -82,6 +111,8 @@ CREATE TABLE Loan (
     Description VARCHAR(255),
     Tenure INT NOT NULL,
     InterestAmount FLOAT NOT NULL,
+    InterestType VARCHAR(150),
+    LoanTypeId INT NOT NULL,
     Emi FLOAT NOT NULL,
     EmiDate DATETIME,
     BankName VARCHAR(100) NOT NULL,
@@ -94,6 +125,8 @@ CREATE TABLE Loan (
     CONSTRAINT `FK_Loan_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId)
         ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `FK_Loan_LoanType` FOREIGN KEY (LoanTypeId)
+        REFERENCES LoanType (LoanTypeId),
     CONSTRAINT `FK_Loan_Account` FOREIGN KEY (AccountId)
         REFERENCES `Account` (AccountId),
     PRIMARY KEY (LoanId)
@@ -200,18 +233,18 @@ CREATE TABLE PaymentMethod (
 
 # Transaction Category 
 CREATE TABLE TransactionCategory (
-    CategoryTransactionId INT NOT NULL AUTO_INCREMENT,
+    TransactionCategoryId INT NOT NULL AUTO_INCREMENT,
     `Name` VARCHAR(100) NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UserId INT NOT NULL,
     AccountId INT NOT NULL,
-    CONSTRAINT `FK_CategoryTransaction_User` FOREIGN KEY (UserId)
+    CONSTRAINT `FK_TransactionCategory_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId)
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT `FK_TransactionCategory_Account` FOREIGN KEY (AccountId)
         REFERENCES `Account` (AccountId),
-    PRIMARY KEY (CategoryTransactionId)
+    PRIMARY KEY (TransactionCategoryId)
 );
 
 -- CREATE DEFAULT VALUES WHEN CREATING THE DATABASE FOR => TransactionType
@@ -230,7 +263,7 @@ CREATE TABLE `Transaction` (
     `Description` VARCHAR(150) NOT NULL,
     `Date` DATETIME NOT NULL,
     UserId INT NOT NULL,
-    CategoryTransactionId INT NULL,
+    TransactionCategoryId INT NULL,    
     PaymentMethodId INT NOT NULL,
     RecurringTypeId INT NOT NULL,
     CreditAccountId INT NOT NULL,
@@ -240,16 +273,15 @@ CREATE TABLE `Transaction` (
     CONSTRAINT `FK_Transaction_User` FOREIGN KEY (UserId)
         REFERENCES User (UserId)
         ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `FK_Transaction_CategoryTransaction` FOREIGN KEY (CategoryTransactionId)
-        REFERENCES CategoryTransaction (CategoryTransactionId)
-        ON UPDATE CASCADE,
-    CONSTRAINT `FK_Transaction_RecurringType` FOREIGN KEY (RecurringTypeId)
-        REFERENCES RecurringType (RecurringTypeId)
+    CONSTRAINT `FK_Transaction_TransactionCategory` FOREIGN KEY (TransactionCategoryId)
+        REFERENCES TransactionCategory (TransactionCategoryId)
         ON UPDATE CASCADE,
     CONSTRAINT `FK_Transaction_PaymentMethod` FOREIGN KEY (PaymentMethodId)
         REFERENCES PaymentMethod (PaymentMethodId)
         ON UPDATE CASCADE,
-    CONSTRAINT `FK_Transaction_Account` FOREIGN KEY (AccountId)
+    CONSTRAINT `FK_Transaction_Account_Credit` FOREIGN KEY (CreditAccountId)
+        REFERENCES `Account` (AccountId),
+    CONSTRAINT `FK_Transaction_Account_Debit` FOREIGN KEY (DebitAccountId)
         REFERENCES `Account` (AccountId),
     PRIMARY KEY (TransactionId)
 );

@@ -5,6 +5,8 @@ VALUES('shankaranarayanan.m.s@gmail.com', 'shankyms', 'SHANKAR@0503','Shankara',
 
 INSERT INTO transactiontype (Name) VALUES('Savings'),('Loan'),('Lending'),('Salary'),('Budget'),('Debit'),('Credit') ;
 
+-- How would we trigger the transaction based on the string values ??
+-- we could use a function to generate the next occuring date during the db insert
 INSERT INTO recurringtype (Name) VALUES('Daily'),('Weekly'),('Fortnight'),('Monthly'),('Yearly'),('None');
 
 -- Creating a new Budget
